@@ -118,6 +118,7 @@ else()
     PATCH_COMMAND # forcing static libs
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/brisk/CMakeLists.txt ${CMAKE_CURRENT_BINARY_DIR}/brisk/src/brisk_external/CMakeLists.txt
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/brisk/agast/CMakeLists.txt ${CMAKE_CURRENT_BINARY_DIR}/brisk/src/brisk_external/agast/CMakeLists.txt
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/brisk/src/demo-free.cc ${CMAKE_CURRENT_BINARY_DIR}/brisk/src/brisk_external/src/demo-free.cc
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/brisk
     BUILD_IN_SOURCE 0
@@ -326,7 +327,7 @@ add_dependencies(okvis_multisensor_processing okvis_util)
 # also build the apps
 if(BUILD_APPS)
   FIND_PACKAGE(Boost COMPONENTS filesystem system REQUIRED)
-FIND_PACKAGE(OpenCV COMPONENTS REQUIRED)
+FIND_PACKAGE(OpenCV REQUIRED)
   include_directories(${Boost_INCLUDE_DIRS}) 
   add_executable(okvis_app_synchronous okvis_apps/src/okvis_app_synchronous.cpp)
   target_link_libraries(okvis_app_synchronous 

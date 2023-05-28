@@ -4,6 +4,10 @@ project(okvis_ceres)
 # require Eigen
 find_package( Eigen REQUIRED )
 include_directories(${EIGEN_INCLUDE_DIR}) 
+
+# require OpenCV
+find_package( OpenCV REQUIRED )
+include_directories(BEFORE ${OpenCV_INCLUDE_DIRS}) 
                
 # build the library 
 add_library(${PROJECT_NAME} 
