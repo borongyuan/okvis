@@ -11,7 +11,7 @@ find_package( OpenCV COMPONENTS core highgui imgproc features2d REQUIRED )
 include_directories(BEFORE ${OpenCV_INCLUDE_DIRS}) 
 
 # build the library
-add_library(${PROJECT_NAME} STATIC 
+add_library(${PROJECT_NAME} 
   src/CameraBase.cpp
   src/NCameraSystem.cpp
 )
@@ -28,7 +28,7 @@ target_link_libraries(${PROJECT_NAME}
 # installation if required
 install(TARGETS ${PROJECT_NAME}
   EXPORT okvisTargets 
-  ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+  LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
 )
 install(DIRECTORY include/ DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT dev FILES_MATCHING PATTERN "*.hpp")
 

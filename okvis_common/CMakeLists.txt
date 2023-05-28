@@ -12,7 +12,7 @@ find_package( Eigen REQUIRED )
 include_directories(${EIGEN_INCLUDE_DIR}) 
 
 # build the library
-add_library(${PROJECT_NAME} STATIC 
+add_library(${PROJECT_NAME} 
   src/VioInterface.cpp
   src/VioParametersReader.cpp
   include/okvis/FrameTypedefs.hpp
@@ -34,6 +34,6 @@ target_link_libraries(${PROJECT_NAME}
 # installation if required
 install(TARGETS ${PROJECT_NAME}
   EXPORT okvisTargets 
-  ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+  LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
 )
 install(DIRECTORY include/ DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT dev FILES_MATCHING PATTERN "*.hpp")

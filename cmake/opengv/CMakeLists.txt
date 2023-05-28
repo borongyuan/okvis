@@ -42,7 +42,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-add_definitions (-Wall -march=native -O3) #TODO use correct c++11 def once everybody has moved to gcc 4.7 # for now I even removed std=gnu++0x
+add_definitions (-Wall -O3) #TODO use correct c++11 def once everybody has moved to gcc 4.7 # for now I even removed std=gnu++0x
 
 # get eigen (and boost under windows)
 IF(WIN32)
@@ -184,9 +184,9 @@ IF(WIN32)
        test/time_measurement.hpp )
   endif()
 ELSE()
-  add_library( opengv STATIC ${OPENGV_SOURCE_FILES} ${OPENGV_HEADER_FILES} )
+  add_library( opengv SHARED ${OPENGV_SOURCE_FILES} ${OPENGV_HEADER_FILES} )
   if(DEFINED BUILD_TESTS)
-    add_library( random_generators STATIC 
+    add_library( random_generators SHARED 
       test/random_generators.cpp 
       test/random_generators.hpp 
       test/experiment_helpers.cpp 
@@ -252,6 +252,7 @@ endif()
 install(TARGETS opengv
   EXPORT opengvTargets 
   ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+  LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
 )
 install(DIRECTORY include/ DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT dev FILES_MATCHING PATTERN "*.hpp")
 

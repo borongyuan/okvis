@@ -8,6 +8,8 @@ set(OKVIS_PATCH_VERSION 3)
 set(OKVIS_VERSION
   ${OKVIS_MAJOR_VERSION}.${OKVIS_MINOR_VERSION}.${OKVIS_PATCH_VERSION})
 
+OPTION( BUILD_SHARED_LIBS "Set to OFF to build static libraries" ON )
+
 # options for build configuration
 option (USE_SYSTEM_BRISK
         "Use brisk via find_package rather than downloading it as part of okvis" OFF) 
@@ -60,7 +62,7 @@ if(APPLE)
   # possible on OSX just yet.
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall -std=c++11 -fPIC")
 else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall -std=c++11 -fPIC")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -std=c++11 -fPIC")
 endif()
 
 if(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "arm*")
@@ -113,22 +115,25 @@ else()
   ExternalProject_Add(brisk_external
     URL "https://www.doc.ic.ac.uk/~sleutene/software/brisk-2.0.3.zip"    
     INSTALL_DIR ${CMAKE_BINARY_DIR}
+    PATCH_COMMAND # forcing static libs
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/brisk/CMakeLists.txt ${CMAKE_CURRENT_BINARY_DIR}/brisk/src/brisk_external/CMakeLists.txt
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/brisk/agast/CMakeLists.txt ${CMAKE_CURRENT_BINARY_DIR}/brisk/src/brisk_external/agast/CMakeLists.txt
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/brisk
     BUILD_IN_SOURCE 0
     BUILD_COMMAND make -j${N_CORES}
     INSTALL_COMMAND make install
   )
-  add_library(brisk STATIC IMPORTED)
-  add_library(agast STATIC IMPORTED)
+  add_library(brisk SHARED IMPORTED)
+  add_library(agast SHARED IMPORTED)
   set(BRISK_LIBRARIES brisk agast)
-  set_target_properties(brisk PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libbrisk.a)
-  set_target_properties(agast PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libagast.a)
+  set_target_properties(brisk PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libbrisk.so)
+  set_target_properties(agast PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libagast.so)
   add_dependencies(brisk brisk_external)
   add_dependencies(agast brisk_external)
 
   # install it once built
-  install(FILES ${CMAKE_BINARY_DIR}/lib/libbrisk.a ${CMAKE_BINARY_DIR}/lib/libagast.a 
+  install(FILES ${CMAKE_BINARY_DIR}/lib/libbrisk.so ${CMAKE_BINARY_DIR}/lib/libagast.so 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/brisk/ 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/include/brisk/)
@@ -155,6 +160,7 @@ else()
     CMAKE_ARGS 
       -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
       -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+      -DBUILD_SHARED_LIBS:BOOL=ON
       -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} 
       -DBUILD_EXAMPLES:BOOL=OFF
       -DBUILD_TESTING:BOOL=OFF
@@ -181,10 +187,10 @@ else()
 
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set_property(TARGET ceres PROPERTY IMPORTED_LOCATION
-               ${CMAKE_BINARY_DIR}/${CERES_LIB_PREFIX}/libceres-debug.a )
+               ${CMAKE_BINARY_DIR}/${CERES_LIB_PREFIX}/libceres-debug.so )
   else () 
     set_property(TARGET ceres PROPERTY IMPORTED_LOCATION
-               ${CMAKE_BINARY_DIR}/${CERES_LIB_PREFIX}/libceres.a )
+               ${CMAKE_BINARY_DIR}/${CERES_LIB_PREFIX}/libceres.so )
   endif ()
    
   find_package(OpenMP QUIET)
@@ -199,7 +205,11 @@ else()
   add_dependencies(${CERES_LIBRARIES} ceres_external)
 
   # install it once built
-  install(FILES ${CMAKE_BINARY_DIR}/${CERES_LIB_PREFIX}/libceres.a 
+  install(FILES ${CMAKE_BINARY_DIR}/${CERES_LIB_PREFIX}/libceres.so 
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+  install(FILES ${CMAKE_BINARY_DIR}/${CERES_LIB_PREFIX}/libceres.so.1 
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+  install(FILES ${CMAKE_BINARY_DIR}/${CERES_LIB_PREFIX}/libceres.so.${CERES_VERSION} 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/ceres/ 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ceres/)
@@ -230,13 +240,13 @@ ExternalProject_Add(opengv_external
     BUILD_COMMAND make -j${N_CORES}
     INSTALL_COMMAND make install
 )
-add_library(opengv STATIC IMPORTED)
+add_library(opengv SHARED IMPORTED)
 set(OpenGV_LIBRARIES opengv)
-set_target_properties(opengv PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libopengv.a)
+set_target_properties(opengv PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libopengv.so)
 add_dependencies(${OpenGV_LIBRARIES} opengv_external)
 
 # install it once built
-install(FILES ${CMAKE_BINARY_DIR}/lib/libopengv.a 
+install(FILES ${CMAKE_BINARY_DIR}/lib/libopengv.so 
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/opengv/ 
   DESTINATION ${CMAKE_INSTALL_PREFIX}/include/opengv/)
@@ -315,6 +325,7 @@ add_dependencies(okvis_multisensor_processing okvis_util)
 # also build the apps
 if(BUILD_APPS)
   FIND_PACKAGE(Boost COMPONENTS filesystem system REQUIRED)
+FIND_PACKAGE(OpenCV COMPONENTS REQUIRED)
   include_directories(${Boost_INCLUDE_DIRS}) 
   add_executable(okvis_app_synchronous okvis_apps/src/okvis_app_synchronous.cpp)
   target_link_libraries(okvis_app_synchronous 
@@ -330,6 +341,10 @@ if(BUILD_APPS)
     okvis_multisensor_processing
     pthread 
     ${Boost_LIBRARIES}
+${CERES_LIBRARIES}
+${OpenGV_LIBRARIES}
+${OpenCV_LIBRARIES}
+
   )
   if(${VISENSORDRIVER_FOUND})
     target_link_libraries(okvis_app_synchronous ${VISensorDriver_LIBRARY})
