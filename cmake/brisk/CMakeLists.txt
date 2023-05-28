@@ -50,7 +50,7 @@ include_directories(BEFORE ${OpenCV_INCLUDE_DIRS})
 
 if(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "arm*")
   message(STATUS "ARM processor detected, will attempt to use NEON.")
-  add_definitions(-mfpu=neon -DHAVE_OPENCV -Wall -pedantic -std=c++0x -fPIC)
+  add_definitions(-D__ARM_NEON__ -DHAVE_OPENCV -Wall -pedantic -std=c++0x -fPIC)
 else()
   message(STATUS "Assuming SSE instructions available.")
   add_definitions(-mssse3 -DHAVE_OPENCV -Wall -pedantic -std=c++0x -fPIC)

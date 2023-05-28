@@ -67,7 +67,7 @@ endif()
 
 if(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "arm*")
   message(STATUS "ARM processor detected, will attempt to use NEON.")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__ARM_NEON__")
 else()
   message(STATUS "Assuming SSE instructions available.")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mssse3")
@@ -157,6 +157,7 @@ else()
     GIT_TAG ${CERES_TAG}
     UPDATE_COMMAND ""
     INSTALL_DIR ${CMAKE_BINARY_DIR}
+    PATCH_COMMAND patch internal/ceres/schur_eliminator.h < ${CMAKE_CURRENT_SOURCE_DIR}/ceres.patch
     CMAKE_ARGS 
       -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
       -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
